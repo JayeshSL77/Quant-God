@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Node.js
+node_modules/
+dist/
+.DS_Store
+
+# Logs
+*.log
+backend_test_output.jsonl
+reliance_full_debug.txt
+reliance_prompt_debug_v2.txt
+test_output.txt
+
+# IDEs
+.vscode/
+.idea/
