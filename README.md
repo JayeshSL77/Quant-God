@@ -1,96 +1,101 @@
 # Inwezt AI
 
-Inwezt AI is a comprehensive platform for financial analysis, leveraging advanced AI agents to process annual reports, concall transcripts, and market data. It provides quantitative models and AI-driven insights to help investors make informed decisions.
+<div align="center">
+  <h3>AI Powered Investing Co-Pilot for Mass-Affluent Indian Investors</h3>
+  <p>Quantitative models and AI-driven insights to help investors make informed decisions.</p>
+</div>
 
-## 🚀 Key Features
+---
 
-- **AI-Driven Financial Analysis**: Extract insights from complex financial documents like annual reports and conference call transcripts.
-- **Quantitative Models**: Integrated models for stock valuation and performance tracking.
-- **Automated Data Scrapers**: Efficiently collect data from NSE and other financial sources.
-- **Modern Web Interface**: A responsive and dynamic UI built with React and Vite.
+## 🚀 Overview
+
+Inwezt AI is a comprehensive platform leveraging advanced AI agents to process annual reports, concall transcripts, and market data. It combines deep financial analysis with an intuitive chat interface to democratize institutional-grade investment research.
 
 ## 🛠 Tech Stack
 
 ### Backend
-- **Core**: Python 3.11+
-- **Framework**: FastAPI, Uvicorn
-- **AI/LLM**: LangChain, OpenAI, Google Gemini, Mistral AI, Anthropic
-- **Data**: Pandas, NumPy, yfinance, nselib
-- **Database**: SQLAlchemy, PostgreSQL (via psycopg2)
-- **Cloud/Other**: Boto3 (AWS), python-dotenv
+- **Core**: Python 3.11+, FastAPI
+- **AI/LLM**: LangChain, OpenAI, Google Gemini, Mistral AI
+- **Data Processing**: Pandas, NumPy, yfinance, nselib
+- **Database**: PostgreSQL (SQLAlchemy)
 
 ### Frontend
-- **Framework**: Vite + React
-- **Styling**: Vanilla CSS, TailwindCSS (for utility), Framer Motion (animations)
-- **Icons**: Lucide React
-- **Language**: TypeScript
+- **Framework**: React + Vite + TypeScript
+- **Styling**: Vanilla CSS (Premium Design System)
+- **State/Effects**: Framer Motion
 
 ## 📂 Project Structure
 
 ```text
 inwezt_app/
-├── backend/                # FastAPI application
-│   ├── agents/             # AI agent logic and prompts
-│   ├── api/                # API endpoints and main entry point
-│   ├── database/           # DB schema and connection logic
-│   ├── quant/              # Quantitative analysis models
-│   └── utils/              # Shared utilities
-├── inwezt_frontend/       # React + Vite frontend
-│   ├── src/                # Frontend source code
-│   └── public/             # Static assets
-├── Dockerfile              # Containerization setup
-├── requirements.txt        # Backend dependencies
-└── run.py                  # Backend startup script
+├── backend/                # FastAPI application & AI Agents
+│   ├── agents/             # Agent logic (Market, Filings, Technicals)
+│   ├── api/                # API Endpoints
+│   └── database/           # DB Models & Connections
+├── inwezt_frontend/       # React Frontend
+│   ├── src/                # Components & Styles
+│   └── public/             # Static Assets
+├── Dockerfile              # Container Configuration
+└── requirements.txt        # Backend Dependencies
 ```
 
-## 🚥 Getting Started
+## 🚥 Local Development
 
 ### Prerequisites
 - Python 3.11+
-- Node.js (for frontend)
-- API Keys for AI services (OpenAI, Gemini, Mistral, etc.) configured in a `.env` file.
+- Node.js v18+
+- PostgreSQL (optional, can run with SQLite for dev)
 
-### Backend Setup
-1. Navigate to the root folder:
-   ```bash
-   cd inwezt_app
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Configure environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your credentials
-   ```
-4. Run the backend:
-   ```bash
-   python run.py
-   ```
+### 1. Backend Setup
+```bash
+cd inwezt_app
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
 
-### Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd inwezt_frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the dev server:
-   ```bash
-   npm run dev
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-## 🐳 Docker Support
+# Setup Environment
+cp .env.example .env
+# Edit .env with your API keys (OPENAI_API_KEY, etc.)
 
-Build and run the application using Docker:
+# Run Development Server
+python run.py
+```
+
+### 2. Frontend Setup
+```bash
+cd inwezt_frontend
+npm install
+npm run dev
+```
+
+## 🚀 Production Deployment
+
+### Option A: Docker (Recommended)
+Build and run the entire stack containerized.
 ```bash
 docker build -t inwezt-app .
-docker run -p 8000:8000 inwezt-app
+docker run -d -p 8000:8000 --env-file .env inwezt-app
+```
+
+### Option B: Manual Deployment
+
+**Frontend Build**
+```bash
+cd inwezt_frontend
+npm run build
+# Serve the 'dist' folder using Nginx, Vercel, or Netlify
+```
+
+**Backend Service**
+Run using a production-grade ASGI server like Gunicorn.
+```bash
+cd inwezt_app
+pip install gunicorn
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.api.main:app
 ```
 
 ## 📜 License
-
-This project is licensed under the [ISC License](file:///Users/brainx/Desktop/Create/inwezt_app/inwezt_frontend/package.json).
+This project is licensed under the ISC License.

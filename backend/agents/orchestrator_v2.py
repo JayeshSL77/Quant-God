@@ -443,7 +443,7 @@ class OrchestratorV2(BaseAgent):
     def process(self, query: str, context: Dict[str, Any]):
         """
         Process query using institutional-grade RAG pipeline (Generator).
-        Yields progress updates and final synthesized answer.
+        Yields progress updates for research trace and final synthesized response chunks.
         """
         self._log_activity(f"[V2] Processing: {query}")
         
@@ -458,16 +458,20 @@ class OrchestratorV2(BaseAgent):
         sub_questions = decompose_query(query, symbol)
         self._log_activity(f"[V2] Decomposed into {len(sub_questions)} sub-questions")
         
-        # 3. Parallel agent execution
+        # 3. Parallel agent execution (Checklist Trigger)
         agents = [self.market_agent, self.filings_agent, self.news_agent, self.technical_agent]
         aggregated_data = {}
         
-        agent_display_names = {
+        agent_status_map = {
             "MarketDataAgent": "Market Dynamics",
             "FilingsAgent": "Deep Filings & Concalls",
             "NewsAgent": "Recent Developments",
             "TechnicalAgent": "Technical Indicators"
         }
+
+        # Send initial queuing statuses
+        for agent_name in agent_status_map.values():
+            yield {"status": "thinking", "message": f"Queued {agent_name}..."}
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             future_to_agent = {
@@ -481,8 +485,8 @@ class OrchestratorV2(BaseAgent):
                     result = future.result()
                     if result.get("has_data", False):
                         aggregated_data[agent_name] = result["data"]
-                        display_name = agent_display_names.get(agent_name, agent_name)
-                        yield {"status": "thinking", "message": f"Incorporated {display_name}..."}
+                        display_name = agent_status_map.get(agent_name, agent_name)
+                        yield {"status": "thinking", "message": f"[✓] Processed {display_name}"}
                         self._log_activity(f"[V2] {agent_name} contributed data")
                 except Exception as e:
                     self._log_activity(f"[V2] {agent_name} failed: {e}")
@@ -558,8 +562,9 @@ GROW & PROFIT:
 VALUATION INSIGHT: {valuation_insight}
 """
         
-        # 5. Synthesize response
-        final_answer = self._synthesize_institutional(
+        # 5. Synthesize response (STREAMING)
+        full_response_text = ""
+        for chunk in self._stream_institutional(
             query=query,
             symbol=symbol,
             market_data=market_data_str,
@@ -567,18 +572,27 @@ VALUATION INSIGHT: {valuation_insight}
             news_context=news_context,
             peer_context=peer_context,
             latest_snapshot=latest
-        )
-        
+        ):
+            full_response_text += chunk
+            yield {
+                "status": "success",
+                "response": full_response_text, # Frontend accumulates or replaces
+                "chunk": chunk,                # For word-by-word effect
+                "data": aggregated_data,
+                "is_partial": True
+            }
+            
         yield {
             "status": "success",
-            "response": final_answer,
+            "response": full_response_text,
             "data": aggregated_data,
             "category": "institutional_analysis",
             "agents_used": list(aggregated_data.keys()),
-            "version": "v2_experimental"
+            "version": "v2_experimental",
+            "is_partial": False
         }
     
-    def _synthesize_institutional(
+    def _stream_institutional(
         self,
         query: str,
         symbol: str,
@@ -587,23 +601,21 @@ VALUATION INSIGHT: {valuation_insight}
         news_context: str,
         peer_context: str,
         latest_snapshot: Dict[str, Any]
-    ) -> str:
+    ):
         """
-        Generate institutional-grade response using dynamic prompt based on available data.
+        Generate institutional-grade response via Mistral Stream.
         """
         if not (self.openai_client or self.gemini_client or self.mistral_client):
-            return "Error: AI model not configured."
+            yield "Error: AI model not configured."
+            return
         
-        # Detect what data we actually have
+        # Build prompt
         has_sector_pe = latest_snapshot.get('sector_pe') is not None
         has_historical_data = "10-Year CAGR" in market_data
         has_margin_data = latest_snapshot.get('net_margin') is not None
         has_growth_data = latest_snapshot.get('revenue_growth') is not None or latest_snapshot.get('profit_growth') is not None
-        
-        # Check if we have actual earnings call transcript (not just filing dates)
         has_earnings_transcript = earnings_context and "management" in earnings_context.lower() and len(earnings_context) > 200
         
-        # Build dynamic prompt
         dynamic_system_prompt = build_dynamic_prompt(
             symbol=symbol,
             has_sector_pe=has_sector_pe,
@@ -613,7 +625,6 @@ VALUATION INSIGHT: {valuation_insight}
             has_growth_data=has_growth_data
         )
         
-        # Build full prompt
         prompt = f"""{dynamic_system_prompt}
 
 CURRENT MARKET DATA:
@@ -636,29 +647,35 @@ ANALYSIS:
 """
         
         try:
-            if self.provider == "openai" and self.openai_client:
-                response = self.openai_client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.3
-                )
-                return response.choices[0].message.content
-            
-            elif self.provider == "mistral" and self.mistral_client:
-                response = self.mistral_client.chat.complete(
+            if self.provider == "mistral" and self.mistral_client:
+                stream_response = self.mistral_client.chat.stream(
                     model=os.getenv("LLM_MODEL", "mistral-large-latest"),
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3
                 )
-                return response.choices[0].message.content
+                for chunk in stream_response:
+                    content = chunk.data.choices[0].delta.content
+                    if content:
+                        yield content
+            
+            elif self.provider == "openai" and self.openai_client:
+                stream = self.openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.3,
+                    stream=True
+                )
+                for chunk in stream:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
             
             elif self.gemini_client:
-                response = self.gemini_client.generate_content(prompt)
-                return response.text
-            
-            else:
-                return "Error: No LLM configured."
-                
+                # Gemini streaming
+                response = self.gemini_client.generate_content(prompt, stream=True)
+                for chunk in response:
+                    yield chunk.text
+                    
         except Exception as e:
-            self._log_activity(f"[V2] Synthesis error: {e}")
-            return f"Analysis generation failed: {str(e)}"
+            self._log_activity(f"[V2] Stream error: {e}")
+            yield f"Analysis generation failed: {str(e)}"

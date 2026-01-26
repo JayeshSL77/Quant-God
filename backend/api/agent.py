@@ -118,20 +118,30 @@ class InweztAgent:
         context = {"include_tax": include_tax_context}
         
         try:
-            # The orchestrator is now a generator that yields thinking states and final result
+            # The orchestrator is now a generator that yields thinking states, chunks, and final result
             final_result = None
             for event in self.orchestrator.process(query, context):
                 if event.get("status") == "thinking":
                     yield event
                 elif event.get("status") == "success":
-                    final_result = event
+                    if event.get("is_partial"):
+                        # Forward partial chunk for real-time streaming
+                        yield {
+                            "status": "success",
+                            "response": event.get("response"),
+                            "chunk": event.get("chunk"),
+                            "is_partial": True
+                        }
+                    else:
+                        final_result = event
             
             if not final_result:
-                raise Exception("Orchestrator failed to return a valid result.")
+                raise Exception("Orchestrator failed to return a final result.")
                 
             response_text = final_result.get("response", "")
             
             # ========== POST-CHECK: Response Sanitization ==========
+            # Only sanitize at the end for performance, or we can sanitize chunks
             response_text = self.response_guard.sanitize_response(response_text, query)
             
             # ========== POST-CHECK: Fact Verification ==========
@@ -158,7 +168,8 @@ class InweztAgent:
                 "intent": mapped_intent,
                 "data_used": final_result.get("data"),
                 "processing_time_ms": processing_time,
-                "disclaimer": "AI-generated. Not investment advice. Verify before acting."
+                "disclaimer": "AI-generated. Not investment advice. Verify before acting.",
+                "is_partial": False
             }
         except Exception as e:
             logger.error(f"Agent processing error: {str(e)}", exc_info=True)

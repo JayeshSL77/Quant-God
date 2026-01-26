@@ -198,6 +198,7 @@ def init_database():
             source VARCHAR(50) DEFAULT 'Trendlyne',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            nuanced_summary TEXT,
             UNIQUE(symbol, quarter, fiscal_year)
         )
     """)
@@ -221,6 +222,7 @@ def init_database():
             url TEXT,
             source VARCHAR(50) DEFAULT 'Trendlyne',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            nuanced_summary TEXT,
             UNIQUE(symbol, fiscal_year)
         )
     """)
@@ -494,14 +496,14 @@ def save_concall(symbol: str, concall: Dict[str, Any]) -> bool:
         cur = conn.cursor()
         
         cur.execute("""
-            INSERT INTO concalls 
             (symbol, quarter, fiscal_year, call_date, title, transcript, 
-             key_highlights, management_guidance, url, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+             key_highlights, management_guidance, nuanced_summary, url, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (symbol, quarter, fiscal_year) DO UPDATE SET
                 transcript = EXCLUDED.transcript,
                 key_highlights = EXCLUDED.key_highlights,
                 management_guidance = EXCLUDED.management_guidance,
+                nuanced_summary = EXCLUDED.nuanced_summary,
                 updated_at = CURRENT_TIMESTAMP
         """, (
             symbol,
@@ -512,6 +514,7 @@ def save_concall(symbol: str, concall: Dict[str, Any]) -> bool:
             _sanitize_text(concall.get("transcript")),
             _sanitize_text(concall.get("key_highlights")),
             _sanitize_text(concall.get("management_guidance")),
+            _sanitize_text(concall.get("nuanced_summary")),
             concall.get("url"),
             concall.get("source", "Trendlyne")
         ))
@@ -599,7 +602,7 @@ def get_concalls(symbol: str, limit: int = 8) -> List[Dict]:
         
         cur.execute("""
             SELECT quarter, fiscal_year, call_date, title, transcript, 
-                   key_highlights, management_guidance, url
+                   key_highlights, management_guidance, nuanced_summary, url
             FROM concalls 
             WHERE symbol = %s 
             ORDER BY call_date DESC 
@@ -631,14 +634,14 @@ def save_annual_report(symbol: str, report: Dict[str, Any]) -> bool:
         cur = conn.cursor()
         
         cur.execute("""
-            INSERT INTO annual_reports 
             (symbol, fiscal_year, report_date, title, summary, 
-             key_metrics, chairman_letter, url, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+             key_metrics, chairman_letter, nuanced_summary, url, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (symbol, fiscal_year) DO UPDATE SET
                 summary = EXCLUDED.summary,
                 key_metrics = EXCLUDED.key_metrics,
-                chairman_letter = EXCLUDED.chairman_letter
+                chairman_letter = EXCLUDED.chairman_letter,
+                nuanced_summary = EXCLUDED.nuanced_summary
         """, (
             symbol,
             report.get("fiscal_year"),
@@ -687,7 +690,7 @@ def get_annual_reports(symbol: str, limit: int = 3) -> List[Dict]:
         
         cur.execute("""
             SELECT fiscal_year, report_date, title, summary, 
-                   key_metrics, chairman_letter, url
+                   key_metrics, chairman_letter, nuanced_summary, url
             FROM annual_reports 
             WHERE symbol = %s 
             ORDER BY fiscal_year DESC 

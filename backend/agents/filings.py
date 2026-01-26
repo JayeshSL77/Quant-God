@@ -77,24 +77,46 @@ class FilingsAgent(BaseAgent):
         # 2. Fetch Concalls & Summarize
         concalls = get_concalls(symbol, limit=1)
         concall_data = []
+        from backend.database.database import save_concall # Import for saving updated summary
+
         for call in concalls:
-            transcript = call.get("transcript", "")
-            if len(transcript) > 500:
-                self._log_activity(f"Summarizing concall for {symbol} ({call.get('fiscal_year')} {call.get('quarter')})")
-                summary = summarize_document(transcript, doc_type="Concall")
-                call["nuanced_summary"] = summary
+            # Check for existing summary in DB result
+            existing_summary = call.get("nuanced_summary")
+            
+            if existing_summary and len(existing_summary) > 200:
+                self._log_activity(f"Using cached concall summary for {symbol}")
+            else:
+                transcript = call.get("transcript", "")
+                if len(transcript) > 500:
+                    self._log_activity(f"Summarizing concall for {symbol} ({call.get('fiscal_year')} {call.get('quarter')})")
+                    summary = summarize_document(transcript, doc_type="Concall")
+                    call["nuanced_summary"] = summary
+                    # Update DB with NEW summary
+                    save_concall(symbol, call)
+                
             concall_data.append(call)
             
         # 3. Fetch Annual Reports & Summarize
         reports = get_annual_reports(symbol, limit=1)
         report_data = []
+        from backend.database.database import save_annual_report # Import for saving updated summary
+
         for report in reports:
-            # Check for chairman letter or summary
-            deep_content = report.get("chairman_letter") or report.get("summary") or ""
-            if len(deep_content) > 500:
-                self._log_activity(f"Summarizing annual report for {symbol} ({report.get('fiscal_year')})")
-                summary = summarize_document(deep_content, doc_type="Annual Report")
-                report["nuanced_summary"] = summary
+            # Check for existing summary 
+            existing_summary = report.get("nuanced_summary")
+            
+            if existing_summary and len(existing_summary) > 200:
+                self._log_activity(f"Using cached annual report summary for {symbol}")
+            else:
+                # Check for chairman letter or summary
+                deep_content = report.get("chairman_letter") or report.get("summary") or ""
+                if len(deep_content) > 500:
+                    self._log_activity(f"Summarizing annual report for {symbol} ({report.get('fiscal_year')})")
+                    summary = summarize_document(deep_content, doc_type="Annual Report")
+                    report["nuanced_summary"] = summary
+                    # Update DB with NEW summary
+                    save_annual_report(symbol, report)
+
             report_data.append(report)
 
         # 4. Check for quarterly results focus

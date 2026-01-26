@@ -4,9 +4,11 @@ export interface ChatEvent {
     status: 'thinking' | 'success' | 'error';
     message?: string;
     response?: string;
+    chunk?: string;
     intent?: string;
     data_used?: any;
     processing_time_ms?: number;
+    is_partial?: boolean;
 }
 
 export const useStreamingAPI = () => {
@@ -35,6 +37,7 @@ export const useStreamingAPI = () => {
 
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
+            let buffer = '';
 
             if (!reader) return;
 
@@ -42,8 +45,11 @@ export const useStreamingAPI = () => {
                 const { value, done } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+
+                // Keep the last partial line in the buffer
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
                     if (!line.trim()) continue;
@@ -51,8 +57,18 @@ export const useStreamingAPI = () => {
                         const event: ChatEvent = JSON.parse(line);
                         onEvent(event);
                     } catch (e) {
-                        console.error('Error parsing NDJSON line:', e);
+                        console.error('Error parsing NDJSON line:', e, 'Line:', line);
                     }
+                }
+            }
+
+            // Parse any remaining content in the buffer
+            if (buffer.trim()) {
+                try {
+                    const event: ChatEvent = JSON.parse(buffer);
+                    onEvent(event);
+                } catch (e) {
+                    console.error('Error parsing final NDJSON buffer:', e, 'Buffer:', buffer);
                 }
             }
         } catch (err: any) {
