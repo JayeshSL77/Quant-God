@@ -1,4 +1,4 @@
-# Analyez AI Interface - Production Dependencies
+# Inwezt AI Interface - Production Dependencies
 # Python 3.11+
 
 # --- Core API & Service ---

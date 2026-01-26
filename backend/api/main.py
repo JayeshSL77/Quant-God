@@ -1,5 +1,5 @@
 """
-Analyez AI Interface - FastAPI Application
+Inwezt AI Interface - FastAPI Application
 Main entry point for the AI Interface API.
 """
 import os

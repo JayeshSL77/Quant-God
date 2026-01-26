@@ -1,5 +1,5 @@
 """
-Analyez - A/B Testing Endpoint for V1 vs V2 Comparison
+Inwezt - A/B Testing Endpoint for V1 vs V2 Comparison
 
 This module provides an endpoint to compare responses from:
 - V1: Current MVP orchestrator (working, operational)

@@ -1,5 +1,5 @@
 """
-Analyez - Historical Data Ingestion from IndianAPI
+Inwezt - Historical Data Ingestion from IndianAPI
 Ingests 10+ years of historical data for 500 stocks.
 """
 import os

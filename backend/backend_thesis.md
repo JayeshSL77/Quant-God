@@ -1,10 +1,10 @@
-# Analyez Backend Thesis: Institutional-Grade AI Financial Analysis
+# Inwezt Backend Thesis: Institutional-Grade AI Financial Analysis
 
-This document consolidates the methodology, findings, and technical architecture of the Analyez AI backend, synthesized from extensive testing and debug logs.
+This document consolidates the methodology, findings, and technical architecture of the Inwezt AI backend, synthesized from extensive testing and debug logs.
 
 ## 核心 Methodology: Multi-Layered RAG
 
-Analyez employs a sophisticated Retrieval-Augmented Generation (RAG) pipeline designed for institutional-grade equity research. Unlike basic RAG, it decomposes queries and synchronizes data across four specialized analytical layers:
+Inwezt employs a sophisticated Retrieval-Augmented Generation (RAG) pipeline designed for institutional-grade equity research. Unlike basic RAG, it decomposes queries and synchronizes data across four specialized analytical layers:
 
 1.  **Quantitative Layer (MarketDataAgent)**: Fetches real-time and historical valuation metrics (P/E, P/B), trading data (52W High/Low, Beta), and peer comparisons.
 2.  **Structural Layer (FilingsAgent)**: Performs deep extraction from quarterly results, annual reports, and conference call transcripts. It prioritizes management guidance and strategic pivots.
@@ -28,7 +28,7 @@ All synthesized responses follow a strict institutional framework:
 
 ## Evolution of AI Insights
 
-The Analyez AI has evolved from a basic conversational summarizer to a high-fidelity equity research engine. Below is a comparison of the response quality across versions:
+The Inwezt AI has evolved from a basic conversational summarizer to a high-fidelity equity research engine. Below is a comparison of the response quality across versions:
 
 ### 1. Previous (MVP / V1 - Conversational Summary)
 **Characteristics**: Plain text, conversational tone, lacks quantitative depth, focused on broad sentiment.

@@ -1,5 +1,5 @@
 """
-Analyez V3 - Institutional-Grade Deep RAG Orchestrator
+Inwezt V3 - Institutional-Grade Deep RAG Orchestrator
 
 This is the PRODUCTION-READY V3 orchestrator that replaces the MVP.
 It leverages deep data from concall transcripts and annual reports.

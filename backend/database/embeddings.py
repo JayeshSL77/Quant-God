@@ -1,5 +1,5 @@
 """
-Analyez - Vector Embeddings for RAG
+Inwezt - Vector Embeddings for RAG
 Uses OpenAI or Gemini embeddings for semantic search of news and historical data.
 """
 import os

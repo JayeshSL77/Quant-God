@@ -261,7 +261,7 @@ At ₹1,404, the PE is 23x — a bit higher than other companies (sector PE is 1
 Good for long-term. Strong company, fair price. Not very cheap, but reliable. 💰"
 """
 
-        system_prompt = f"""You are Analyez, a helpful AI for Indian stock market investors.
+        system_prompt = f"""You are Inwezt, a helpful AI for Indian stock market investors.
 
 User asked: "{query}"
 

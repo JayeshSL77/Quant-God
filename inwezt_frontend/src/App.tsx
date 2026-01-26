@@ -83,7 +83,7 @@ export default function App() {
             exit={{ opacity: 0, y: -20 }}
             className="intro-section"
           >
-            <h1 className="title">Introducing Analyez</h1>
+            <h1 className="title">Introducing Inwezt</h1>
             <p className="subtitle">AI Powered Investing Co-Pilot for Mass-Affluent Indian Investors</p>
           </motion.div>
         )}
@@ -133,7 +133,7 @@ export default function App() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Analyez Anything..."
+            placeholder="Inwezt Anything..."
             autoFocus
             disabled={isStreaming}
           />

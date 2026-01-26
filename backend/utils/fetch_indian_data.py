@@ -1,5 +1,5 @@
 """
-Analyez - Indian Stock Data Fetcher
+Inwezt - Indian Stock Data Fetcher
 Uses IndianAPI by RapidAPI as PRIMARY source for comprehensive data.
 """
 import os

@@ -1,5 +1,5 @@
 """
-Analyez AI Interface - Configuration
+Inwezt AI Interface - Configuration
 Central configuration for API keys, environment variables, and settings.
 """
 import os
@@ -32,7 +32,7 @@ class Config:
     DYNAMODB_TABLE: str = os.getenv("DYNAMODB_TABLE", "StockDataCache")
     
     # Application Settings
-    APP_NAME: str = "Analyez AI"
+    APP_NAME: str = "Inwezt AI"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
     
@@ -55,7 +55,7 @@ config = Config()
 
 # System Prompts
 AGENT_SYSTEM_PROMPT = """
-You are Analyez, an elite AI investment analyst for Indian stocks.
+You are Inwezt, an elite AI investment analyst for Indian stocks.
 
 MOBILE-FIRST FORMAT (Keep responses SHORT for mobile screens):
 

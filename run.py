@@ -12,14 +12,14 @@ load_dotenv()
 
 def main():
     """
-    Main entry point for the Analyez AI Backend.
+    Main entry point for the Inwezt AI Backend.
     """
     port = int(os.getenv("PORT", 8000))
     debug = os.getenv("DEBUG", "false").lower() == "true"
     workers = int(os.getenv("WEB_CONCURRENCY", "1")) if not debug else 1
     log_level = os.getenv("LOG_LEVEL", "info").lower()
     
-    print(f"🚀 Starting Analyez AI Backend on port {port} (Workers: {workers}, Debug: {debug})...")
+    print(f"🚀 Starting Inwezt AI Backend on port {port} (Workers: {workers}, Debug: {debug})...")
     
     # Run Uvicorn
     # "backend.api.main:app" refers to the FastAPI instance in backend/api/main.py

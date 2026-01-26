@@ -1,6 +1,6 @@
-# Analyez AI
+# Inwezt AI
 
-Analyez AI is a comprehensive platform for financial analysis, leveraging advanced AI agents to process annual reports, concall transcripts, and market data. It provides quantitative models and AI-driven insights to help investors make informed decisions.
+Inwezt AI is a comprehensive platform for financial analysis, leveraging advanced AI agents to process annual reports, concall transcripts, and market data. It provides quantitative models and AI-driven insights to help investors make informed decisions.
 
 ## 🚀 Key Features
 
@@ -28,14 +28,14 @@ Analyez AI is a comprehensive platform for financial analysis, leveraging advanc
 ## 📂 Project Structure
 
 ```text
-analyez_app/
+inwezt_app/
 ├── backend/                # FastAPI application
 │   ├── agents/             # AI agent logic and prompts
 │   ├── api/                # API endpoints and main entry point
 │   ├── database/           # DB schema and connection logic
 │   ├── quant/              # Quantitative analysis models
 │   └── utils/              # Shared utilities
-├── analyez_frontend/       # React + Vite frontend
+├── inwezt_frontend/       # React + Vite frontend
 │   ├── src/                # Frontend source code
 │   └── public/             # Static assets
 ├── Dockerfile              # Containerization setup
@@ -53,7 +53,7 @@ analyez_app/
 ### Backend Setup
 1. Navigate to the root folder:
    ```bash
-   cd analyez_app
+   cd inwezt_app
    ```
 2. Install dependencies:
    ```bash
@@ -72,7 +72,7 @@ analyez_app/
 ### Frontend Setup
 1. Navigate to the frontend directory:
    ```bash
-   cd analyez_frontend
+   cd inwezt_frontend
    ```
 2. Install dependencies:
    ```bash
@@ -87,10 +87,10 @@ analyez_app/
 
 Build and run the application using Docker:
 ```bash
-docker build -t analyez-app .
-docker run -p 8000:8000 analyez-app
+docker build -t inwezt-app .
+docker run -p 8000:8000 inwezt-app
 ```
 
 ## 📜 License
 
-This project is licensed under the [ISC License](file:///Users/brainx/Desktop/Create/analyez_app/analyez_frontend/package.json).
+This project is licensed under the [ISC License](file:///Users/brainx/Desktop/Create/inwezt_app/inwezt_frontend/package.json).

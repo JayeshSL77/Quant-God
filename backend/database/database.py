@@ -1,5 +1,5 @@
 """
-Analyez - Database Module
+Inwezt - Database Module
 PostgreSQL storage for comprehensive stock data (RAG foundation).
 """
 import os
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("AnalyezDB")
+logger = logging.getLogger("InweztDB")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -230,7 +230,7 @@ def init_database():
         ON annual_reports(symbol, fiscal_year DESC)
     """)
 
-    # Knowledge Base (for Analyez specific Q&A)
+    # Knowledge Base (for Inwezt specific Q&A)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_base (
             id SERIAL PRIMARY KEY,

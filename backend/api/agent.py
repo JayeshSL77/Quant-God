@@ -1,5 +1,5 @@
 """
-Analyez AI Interface - Agent Orchestrator
+Inwezt AI Interface - Agent Orchestrator
 The brain that coordinates queries, tools, and LLM responses.
 """
 import os
@@ -57,13 +57,13 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("AnalyezAgent")
+logger = logging.getLogger("InweztAgent")
 
 
 
 from backend.agents.orchestrator_v2 import OrchestratorV2
 
-class AnalyezAgent:
+class InweztAgent:
     """
     Wrapper for the new Agentic RAG Orchestrator.
     Maintains backward compatibility for main.py
@@ -93,14 +93,14 @@ class AnalyezAgent:
         query_lower = query.lower().strip()
         
         # ========== MAIN PROCESSING ==========
-        # Check Knowledge Base for Analyez-specific queries
-        if "analyez" in query_lower:
+        # Check Knowledge Base for Inwezt-specific queries
+        if "inwezt" in query_lower:
             yield {"status": "thinking", "message": "Searching internal knowledge base..."}
             time.sleep(1) # Visual pause
             knowledge_items = get_knowledge(query)
             
             if knowledge_items:
-                yield {"status": "thinking", "message": "Found relevant information about Analyez."}
+                yield {"status": "thinking", "message": "Found relevant information about Inwezt."}
                 # Construct response from knowledge items
                 best_match = knowledge_items[0]
                 response_text = best_match['answer']
@@ -170,4 +170,4 @@ class AnalyezAgent:
             }
 
 # Singleton instance
-agent = AnalyezAgent()
+agent = InweztAgent()

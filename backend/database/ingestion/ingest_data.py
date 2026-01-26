@@ -1,5 +1,5 @@
 """
-Analyez - Data Ingestion Script
+Inwezt - Data Ingestion Script
 Fetches and stores data for all Nifty stocks to build comprehensive RAG database.
 """
 import os
@@ -140,7 +140,7 @@ def get_db_stats():
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Analyez Data Ingestion")
+    parser = argparse.ArgumentParser(description="Inwezt Data Ingestion")
     parser.add_argument("--init", action="store_true", help="Initialize database tables")
     parser.add_argument("--ingest", action="store_true", help="Ingest all Nifty 50 stocks")
     parser.add_argument("--symbols", nargs="+", help="Specific symbols to ingest")

@@ -1,5 +1,5 @@
 """
-Analyez V3 - Financial Document Summarizer
+Inwezt V3 - Financial Document Summarizer
 Intelligently summarizes large concall transcripts and annual reports using Mistral AI.
 """
 

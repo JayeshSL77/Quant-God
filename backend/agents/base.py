@@ -7,7 +7,7 @@ logger = logging.getLogger("Agent")
 
 class BaseAgent(ABC):
     """
-    Abstract base class for all specialized agents in the Analyez system.
+    Abstract base class for all specialized agents in the Inwezt system.
     """
     
     def __init__(self, name: str, model: str = "gemini-1.5-flash"):
