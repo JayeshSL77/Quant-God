@@ -496,7 +496,7 @@ def save_concall(symbol: str, concall: Dict[str, Any]) -> bool:
         cur = conn.cursor()
         
         cur.execute("""
-            (symbol, quarter, fiscal_year, call_date, title, transcript, 
+            INSERT INTO concalls (symbol, quarter, fiscal_year, call_date, title, transcript, 
              key_highlights, management_guidance, nuanced_summary, url, source)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (symbol, quarter, fiscal_year) DO UPDATE SET
@@ -634,7 +634,7 @@ def save_annual_report(symbol: str, report: Dict[str, Any]) -> bool:
         cur = conn.cursor()
         
         cur.execute("""
-            (symbol, fiscal_year, report_date, title, summary, 
+            INSERT INTO annual_reports (symbol, fiscal_year, report_date, title, summary, 
              key_metrics, chairman_letter, nuanced_summary, url, source)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (symbol, fiscal_year) DO UPDATE SET
@@ -650,6 +650,7 @@ def save_annual_report(symbol: str, report: Dict[str, Any]) -> bool:
             _sanitize_text(report.get("summary")),
             psycopg2.extras.Json(report.get("key_metrics", {})),
             _sanitize_text(report.get("chairman_letter")),
+            _sanitize_text(report.get("nuanced_summary")),
             report.get("url"),
             report.get("source", "Trendlyne")
         ))
@@ -679,6 +680,21 @@ def annual_report_exists(symbol: str, fiscal_year: str) -> bool:
         return exists
     except Exception as e:
         logger.error(f"Error checking annual report existence: {e}")
+        return False
+
+
+def annual_report_url_exists(url: str) -> bool:
+    """Check if an annual report URL already exists in the database."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT 1 FROM annual_reports WHERE url = %s", (url,))
+        exists = cur.fetchone() is not None
+        cur.close()
+        conn.close()
+        return exists
+    except Exception as e:
+        logger.error(f"Error checking annual report URL existence: {e}")
         return False
 
 
