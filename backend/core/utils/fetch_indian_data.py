@@ -16,11 +16,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("IndianStockFetcher")
 
 # Load environment variables
-env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
-load_dotenv(env_path, override=True)
+load_dotenv(override=True)
 
-# API Configuration
-RAPIDAPI_KEY = "92865dd8c6msh066c9fa1eba0f53p114963jsn4aac1db785cf"
+# API Configuration - MUST be set via environment variable
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 RAPIDAPI_HOST = "indian-stock-exchange-api2.p.rapidapi.com"
 
 
@@ -80,57 +79,54 @@ def _normalize_indianapi_data(data: Dict, ticker: str) -> Dict[str, Any]:
         result["ytd_change"] = _safe_float(stock_data.get("priceYTDPricePercentChange"))
         result["week_change"] = _safe_float(stock_data.get("price5DayPercentChange"))
     
-    # Extract key metrics
+    # Profitability & Growth Fallback from peerCompanyList
+    # The IndianAPI stock endpoint often includes the main stock in its peer list with pre-calculated metrics
+    all_peers = stock_data.get("peerCompanyList", [])
+    main_stock_data = next((p for p in all_peers if p.get("companyName", "").upper() == ticker or p.get("tickerId", "").endswith(ticker)), None)
+    
+    if main_stock_data:
+        if not result.get("pe_ratio"): result["pe_ratio"] = _safe_float(main_stock_data.get("priceToEarningsValueRatio"))
+        if not result.get("roe"): result["roe"] = _safe_float(main_stock_data.get("returnOnAverageEquityTrailing12Month"))
+        if not result.get("net_margin"): result["net_margin"] = _safe_float(main_stock_data.get("netProfitMarginPercentTrailing12Month"))
+        if not result.get("book_value"): 
+             pb = _safe_float(main_stock_data.get("priceToBookValueRatio"))
+             if pb and result.get("price"):
+                 result["book_value"] = result["price"] / pb
+
+    # Extract key metrics from specific groups
     key_metrics = data.get("keyMetrics", {})
     
-    # Per share data
+    # Map groups to metric extraction
+    metric_groups = {
+        "mgmtEffectiveness": {
+            "returnOnAverageEquityTrailing12Month": "roe",
+            "returnOnAverageAssetsTrailing12Month": "roa"
+        },
+        "margins": {
+            "netProfitMarginPercentTrailing12Month": "net_margin",
+            "operatingMarginTrailing12Month": "operating_margin"
+        },
+        "growth": {
+            "revenueChangePercentMostRecentQuarter1YearAgo": "revenue_growth",
+            "ePSChangePercentTTMOverTTM": "profit_growth"
+        }
+    }
+    
+    for group_name, mappings in metric_groups.items():
+        group_data = key_metrics.get(group_name, [])
+        for item in group_data:
+            key = item.get("key")
+            if key in mappings:
+                result[mappings[key]] = _safe_float(item.get("value"))
+
+    # Extra share data
     per_share = key_metrics.get("persharedata", [])
     for item in per_share:
         key = item.get("key", "")
-        value = item.get("value")
         if "ePSIncludingExtraOrdinaryItemsTrailing12Month" in key:
-            result["eps_ttm"] = _safe_float(value)
-        elif "revenuePerShareTrailing12" in key.lower():
-            result["revenue_per_share"] = _safe_float(value)
-        elif "dividendsPerShareTrailing12Month" in key:
-            result["dividend_per_share"] = _safe_float(value)
+            result["eps_ttm"] = _safe_float(item.get("value"))
         elif "bookValuePerShare" in key and "MostRecentFiscalYear" in key:
-            result["book_value"] = _safe_float(value)
-    
-    # Price and volume data
-    price_vol = key_metrics.get("priceandVolume", [])
-    for item in price_vol:
-        key = item.get("key", "")
-        value = item.get("value")
-        if key == "52WeekHigh":
-            result["high_52w"] = _safe_float(value)
-        elif key == "52WeekLow":
-            result["low_52w"] = _safe_float(value)
-        elif key == "beta":
-            result["beta"] = _safe_float(value)
-        elif key == "NPRICE":
-            if not result.get("price"):
-                result["price"] = _safe_float(value)
-    
-    # Growth rates
-    growth = key_metrics.get("growthrates", [])
-    for item in growth:
-        key = item.get("key", "")
-        value = item.get("value")
-        if "revenueGrowthRateTrailing12Month" in key:
-            result["revenue_growth"] = _safe_float(value)
-        elif "nNetIncomeGrowthTrailing12Month" in key.lower():
-            result["profit_growth"] = _safe_float(value)
-    
-    # Profitability
-    profitability = key_metrics.get("profitability", [])
-    for item in profitability:
-        key = item.get("key", "")
-        value = item.get("value")
-        if "netProfitMarginPercentTrailing12Month" in key:
-            result["net_margin"] = _safe_float(value)
-        elif "returnOnAverageEquityTrailing12Month" in key:
-            result["roe"] = _safe_float(value)
+            result["book_value"] = _safe_float(item.get("value"))
     
     # Analyst recommendation
     recos = data.get("recosBar", {})

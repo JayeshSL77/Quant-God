@@ -1,3 +1,16 @@
+export interface ChartData {
+    base64: string;
+    type: string;
+    title: string;
+    symbol?: string;
+    insight?: string;
+}
+
+export interface ComparisonData {
+    symbols: string[];
+    metrics: Record<string, Record<string, number | string | null>>;
+}
+
 export interface Message {
     id: string;
     type: 'user' | 'bot';
@@ -6,6 +19,8 @@ export interface Message {
     isComplete: boolean;
     metadata?: Record<string, unknown>;
     researchSteps?: ResearchStep[];
+    chart?: ChartData;
+    comparison?: ComparisonData;
 }
 
 export interface ResearchStep {

@@ -1,101 +1,133 @@
 # Inwezt AI
 
 <div align="center">
-  <h3>AI Powered Investing Co-Pilot for Mass-Affluent Indian Investors</h3>
-  <p>Quantitative models and AI-driven insights to help investors make informed decisions.</p>
+  <h3>AI-Powered Investing Co-Pilot for Indian Investors</h3>
+  <p>Institutional-grade stock analysis with AI agents for market data, filings, and technical insights.</p>
 </div>
 
 ---
 
-## 🚀 Overview
-
-Inwezt AI is a comprehensive platform leveraging advanced AI agents to process annual reports, concall transcripts, and market data. It combines deep financial analysis with an intuitive chat interface to democratize institutional-grade investment research.
-
-## 🛠 Tech Stack
-
-### Backend
-- **Core**: Python 3.11+, FastAPI
-- **AI/LLM**: LangChain, OpenAI, Google Gemini, Mistral AI
-- **Data Processing**: Pandas, NumPy, yfinance, nselib
-- **Database**: PostgreSQL (SQLAlchemy)
-
-### Frontend
-- **Framework**: React + Vite + TypeScript
-- **Styling**: Vanilla CSS (Premium Design System)
-- **State/Effects**: Framer Motion
-
-## 📂 Project Structure
-
-```text
-inwezt_app/
-├── backend/                # FastAPI application & AI Agents
-│   ├── agents/             # Agent logic (Market, Filings, Technicals)
-│   ├── api/                # API Endpoints
-│   └── database/           # DB Models & Connections
-├── inwezt_frontend/       # React Frontend
-│   ├── src/                # Components & Styles
-│   └── public/             # Static Assets
-├── Dockerfile              # Container Configuration
-└── requirements.txt        # Backend Dependencies
-```
-
-## 🚥 Local Development
+## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.11+
 - Node.js v18+
-- PostgreSQL (optional, can run with SQLite for dev)
+- API Keys: RapidAPI (Indian Stock API), Mistral AI
 
-### 1. Backend Setup
+---
+
+## 📦 Installation
+
+### 1. Clone & Setup Environment
+
 ```bash
+git clone https://github.com/your-username/inwezt_app.git
 cd inwezt_app
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Setup Environment
+# Copy environment template
 cp .env.example .env
-# Edit .env with your API keys (OPENAI_API_KEY, etc.)
-
-# Run Development Server
-python run.py
 ```
 
-### 2. Frontend Setup
+### 2. Configure API Keys
+
+Edit `.env` and add your keys:
+```env
+RAPIDAPI_KEY=your-rapidapi-key-here
+MISTRAL_API_KEY=your-mistral-api-key-here
+```
+
+> 💡 Get RapidAPI key from: https://rapidapi.com/suneetk92/api/indian-stock-exchange-api2
+
+---
+
+## 🖥️ Running the Application
+
+### Terminal 1: Start Backend
+
 ```bash
-cd inwezt_frontend
+cd inwezt_app/backend
+
+# Create virtual environment (first time only)
+python -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate  # macOS/Linux
+# OR: venv\Scripts\activate  # Windows
+
+# Install dependencies (first time only)
+pip install -r requirements.txt
+
+# Start the backend server
+python -m uvicorn api.agent:app --reload --port 8000
+```
+
+✅ Backend running at: `http://localhost:8000`
+
+---
+
+### Terminal 2: Start Frontend
+
+```bash
+cd inwezt_app/inwezt_frontend
+
+# Install dependencies (first time only)
 npm install
+
+# Start the frontend dev server
 npm run dev
 ```
 
-## 🚀 Production Deployment
+✅ Frontend running at: `http://localhost:3000`
 
-### Option A: Docker (Recommended)
-Build and run the entire stack containerized.
-```bash
-docker build -t inwezt-app .
-docker run -d -p 8000:8000 --env-file .env inwezt-app
+---
+
+## 💬 Getting Responses
+
+1. Open `http://localhost:3000` in your browser
+2. Type a query in the chat input:
+   - **Single Stock**: `"Analyze Reliance Industries"`
+   - **Comparison**: `"Compare TCS vs Infosys"`
+   - **Specific Question**: `"What is HDFC Bank's ROE?"`
+3. Watch the AI research agents process your query
+4. Get institutional-grade analysis with charts and tables
+
+---
+
+## 📂 Project Structure
+
+```
+inwezt_app/
+├── backend/                 # FastAPI + AI Agents
+│   ├── agents/              # Orchestrator, Market, Filings, Technical agents
+│   ├── api/                 # REST API endpoints
+│   ├── core/                # Data sources & utilities
+│   └── database/            # SQLite/PostgreSQL models
+├── inwezt_frontend/         # React + Vite + TypeScript
+│   ├── src/components/      # Chat UI, Comparison Tables
+│   └── src/styles/          # Premium dark theme
+├── .env.example             # Environment template
+└── ARCHITECTURE.md          # Data source documentation
 ```
 
-### Option B: Manual Deployment
+---
 
-**Frontend Build**
-```bash
-cd inwezt_frontend
-npm run build
-# Serve the 'dist' folder using Nginx, Vercel, or Netlify
-```
+## 🔧 API Endpoints
 
-**Backend Service**
-Run using a production-grade ASGI server like Gunicorn.
-```bash
-cd inwezt_app
-pip install gunicorn
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.api.main:app
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/chat/stream` | POST | Stream AI responses |
+| `/api/health` | GET | Health check |
+
+---
+
+## 🛠 Tech Stack
+
+- **Backend**: Python, FastAPI, Mistral AI, LangChain
+- **Frontend**: React, Vite, TypeScript, Framer Motion
+- **Data**: RapidAPI Indian Stock API, yfinance (fallback)
+
+---
 
 ## 📜 License
-This project is licensed under the ISC License.
+
+ISC License

@@ -731,6 +731,30 @@ def get_annual_reports(symbol: str, limit: int = 3) -> List[Dict]:
         return []
 
 
+def get_stock_coverage(symbol: str) -> Dict[str, int]:
+    """
+    Get coverage counts for a stock.
+    Returns: {'annual_reports': int, 'concalls': int}
+    """
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT COUNT(*) FROM annual_reports WHERE symbol = %s", (symbol,))
+        ar_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM concalls WHERE symbol = %s", (symbol,))
+        concall_count = cur.fetchone()[0]
+        
+        cur.close()
+        conn.close()
+        return {'annual_reports': ar_count, 'concalls': concall_count}
+        
+    except Exception as e:
+        logger.error(f"Failed to get stock coverage: {e}")
+        return {'annual_reports': 0, 'concalls': 0}
+
+
 def save_knowledge(topic: str, question: str, answer: str) -> bool:
     """Save a knowledge base item."""
     try:

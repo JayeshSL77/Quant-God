@@ -1,26 +1,21 @@
+#!/usr/bin/env python3
+"""
+Bulk Ingest Script with Parallel Instance Support
+Run with: python3 bulk_ingest.py --instance 1 --total 6
+"""
 import logging
 import time
 import sys
 import os
+import argparse
 from typing import List
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("bulk_ingest.log"),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("BulkIngest")
 
 # Add parent directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from backend.scrapers.orchestrator import ScraperOrchestrator
 
-# Full list from ingest_historical.py
+# Full NIFTY 500 list
 NIFTY_500 = [
     "RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "HINDUNILVR", 
     "ITC", "SBIN", "BHARTIARTL", "KOTAKBANK", "LT", "AXISBANK",
@@ -95,20 +90,65 @@ NIFTY_500 = [
     "WOCKPHARMA", "XPROINDIA", "YESBANK", "ZENSARTECH", "ZFCVINDIA",
 ]
 
-def run_bulk_ingest(symbols: List[str]):
+def setup_logging(instance_id: int):
+    """Setup logging with instance-specific log file."""
+    log_file = f"logs/instance_{instance_id}.log"
+    os.makedirs("logs", exist_ok=True)
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format=f'%(asctime)s - [I{instance_id}] %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger(f"BulkIngest-{instance_id}")
+
+def run_bulk_ingest(symbols: List[str], instance_id: int):
+    """Run bulk ingestion for a subset of stocks."""
+    logger = setup_logging(instance_id)
+    
+    # Use instance-specific lock file
     orchestrator = ScraperOrchestrator()
-    total = len(symbols)
+    orchestrator.lock_file = f".scraper_{instance_id}.lock"
     
-    logger.info(f"Starting bulk ingestion for {total} stocks")
+    if not orchestrator._acquire_lock():
+        logger.error(f"Could not acquire lock for instance {instance_id}. Exiting.")
+        return
+
+    try:
+        total = len(symbols)
+        logger.info(f"Instance {instance_id}: Starting ingestion for {total} stocks")
+        
+        for i, symbol in enumerate(symbols):
+            try:
+                logger.info(f"=== [{i+1}/{total}] Processing {symbol} ===")
+                orchestrator.ingest_stock_data(symbol)
+                time.sleep(0.5)  # Reduced throttle for parallel
+            except Exception as e:
+                logger.error(f"Failed bulk ingest for {symbol}: {e}")
+                continue
+    finally:
+        orchestrator._release_lock()
+        logger.info(f"Instance {instance_id}: Completed and lock released.")
+
+def main():
+    parser = argparse.ArgumentParser(description="Parallel bulk ingestion script")
+    parser.add_argument("--instance", type=int, required=True, help="Instance number (1-6)")
+    parser.add_argument("--total", type=int, default=6, help="Total number of instances")
+    args = parser.parse_args()
     
-    for i, symbol in enumerate(symbols):
-        try:
-            logger.info(f"=== [{i+1}/{total}] Processing {symbol} ===")
-            orchestrator.ingest_stock_data(symbol)
-            time.sleep(1) # Minor throttle
-        except Exception as e:
-            logger.error(f"Failed bulk ingest for {symbol}: {e}")
-            continue
+    total_stocks = len(NIFTY_500)
+    chunk_size = total_stocks // args.total
+    
+    start_idx = (args.instance - 1) * chunk_size
+    end_idx = start_idx + chunk_size if args.instance < args.total else total_stocks
+    
+    stock_slice = NIFTY_500[start_idx:end_idx]
+    print(f"Instance {args.instance}: Processing stocks {start_idx+1} to {end_idx} ({len(stock_slice)} stocks)")
+    
+    run_bulk_ingest(stock_slice, args.instance)
 
 if __name__ == "__main__":
-    run_bulk_ingest(NIFTY_500)
+    main()

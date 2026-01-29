@@ -182,6 +182,11 @@ h3,
 
 .trace-item.done {
     opacity: 1;
+    color: var(--vivid-blue);
+}
+
+.muted-icon {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .thinking-status {
@@ -215,10 +220,56 @@ h3,
 .source-tag {
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 2rem;
+    margin-top: 3rem;
     font-weight: 500;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
+    text-align: left;
+    position: relative;
+    padding-top: 2rem;
+}
+
+.source-tag::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Markdown Tables */
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-content th,
+.markdown-content td {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.markdown-content th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+    color: #fff;
+}
+
+.markdown-content tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.markdown-content hr {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 3rem 0;
+    display: block;
 }
 
 /* Input Area */

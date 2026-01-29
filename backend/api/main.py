@@ -20,10 +20,10 @@ from backend.api.models import (
     HealthResponse, ErrorResponse, ResponseStatus
 )
 from backend.api.agent import agent
-from backend.utils.indian_utils import IndianTaxCalculator, is_indian_market_open
+from backend.core.utils.indian_utils import IndianTaxCalculator, is_indian_market_open
 
 # A/B Testing for V2 experimental orchestrator
-from backend.api.ab_test import router as ab_test_router
+# from backend.api.ab_test import router as ab_test_router
 
 # =============================================================================
 # APP INITIALIZATION
@@ -65,7 +65,7 @@ app.add_middleware(
 )
 
 # Register A/B test router
-app.include_router(ab_test_router, prefix="/api/v2", tags=["A/B Testing"])
+# app.include_router(ab_test_router, prefix="/api/v2", tags=["A/B Testing"])
 
 
 # =============================================================================

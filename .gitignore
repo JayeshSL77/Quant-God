@@ -3,14 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
-.env
+.venv/
+*.egg-info/
 
-# Archvies
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Archives
 inwezt_app_full.zip
+*.zip
 
 # Node.js
 node_modules/
 dist/
+build/
 .DS_Store
 
 # Logs
@@ -23,3 +31,17 @@ test_output.txt
 # IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Testing artifacts
+backend/tests/artifacts/
+
+# OS files
+Thumbs.db
+.DS_Store

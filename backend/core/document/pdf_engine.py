@@ -35,6 +35,7 @@ class PDFEngine:
         try:
             with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
                 total_pages = len(pdf.pages)
+                logger.info(f"Starting extraction for {total_pages} pages")
                 
                 for i in range(total_pages):
                     page = pdf.pages[i]
@@ -47,8 +48,8 @@ class PDFEngine:
                             for pattern in patterns:
                                 if re.search(pattern, text, re.IGNORECASE):
                                     logger.info(f"Found {section_name} on page {i+1}")
-                                    # Extract this page and potentially the next few
-                                    sections[section_name] = self._extract_range(pdf, i, 4)
+                                    # Use the text we already extracted for this page and next few
+                                    sections[section_name] = self._extract_range_optimized(pdf, i, 4, current_page_text=text)
                                     break
                 
                 return {
@@ -61,10 +62,12 @@ class PDFEngine:
             logger.error(f"PDF extraction failed: {e}")
             return {"full_text": "", "sections": {}, "page_count": 0}
 
-    def _extract_range(self, pdf, start_idx: int, count: int) -> str:
-        """Extract a range of pages for a specific section."""
-        content = []
-        for i in range(start_idx, min(start_idx + count, len(pdf.pages))):
+    def _extract_range_optimized(self, pdf, start_idx: int, count: int, current_page_text: str = "") -> str:
+        """Extract a range of pages for a specific section, reusing current page text."""
+        content = [current_page_text] if current_page_text else []
+        start_from = start_idx + 1 if current_page_text else start_idx
+        
+        for i in range(start_from, min(start_idx + count, len(pdf.pages))):
             page_text = pdf.pages[i].extract_text()
             if page_text:
                 content.append(page_text)

@@ -59,8 +59,10 @@ class FilingsAgent(BaseAgent):
         """
         Retrieves recent filings, concalls, and annual reports.
         Applies nuanced summarization to deep documents for V3.
+        In comparison_mode, uses lighter processing for speed.
         """
         symbol = context.get("formatted_tickers", [])[0] if context.get("formatted_tickers") else None
+        comparison_mode = context.get("comparison_mode", False)
         
         if not symbol:
             return {
@@ -69,79 +71,86 @@ class FilingsAgent(BaseAgent):
                 "source": "FilingsAgent"
             }
             
-        self._log_activity(f"V3: Retrieving deep context for {symbol}")
+        self._log_activity(f"V3: Retrieving deep context for {symbol}" + (" (comparison mode)" if comparison_mode else ""))
         
         # 1. Fetch Basic Filings
-        filings = get_corporate_filings(symbol, limit=5)
+        filings = get_corporate_filings(symbol, limit=3 if comparison_mode else 5)
         
         # 2. Fetch Concalls & Summarize
-        concalls = get_concalls(symbol, limit=1)
+        # In comparison mode: only 2 recent concalls, skip LLM summarization for uncached
+        concall_limit = 2 if comparison_mode else 8
+        concalls = get_concalls(symbol, limit=concall_limit)
         concall_data = []
-        from backend.database.database import save_concall # Import for saving updated summary
+        from backend.database.database import save_concall 
 
         for call in concalls:
-            # Check for existing summary in DB result
             existing_summary = call.get("nuanced_summary")
-            
             if existing_summary and len(existing_summary) > 200:
                 self._log_activity(f"Using cached concall summary for {symbol}")
-            else:
+            elif not comparison_mode:
+                # Only do LLM summarization in full mode, not comparison mode
                 transcript = call.get("transcript", "")
                 if len(transcript) > 500:
-                    self._log_activity(f"Summarizing concall for {symbol} ({call.get('fiscal_year')} {call.get('quarter')})")
                     summary = summarize_document(transcript, doc_type="Concall")
                     call["nuanced_summary"] = summary
-                    # Update DB with NEW summary
                     save_concall(symbol, call)
-                
             concall_data.append(call)
             
         # 3. Fetch Annual Reports & Summarize
-        reports = get_annual_reports(symbol, limit=1)
+        # In comparison mode: only 2 recent reports, skip LLM summarization for uncached
+        report_limit = 2 if comparison_mode else 7
+        reports = get_annual_reports(symbol, limit=report_limit)
         report_data = []
-        from backend.database.database import save_annual_report # Import for saving updated summary
+        annual_results = []
+        from backend.database.database import save_annual_report 
 
         for report in reports:
-            # Check for existing summary 
+            # Extract numerical data for charting
+            metrics = report.get("key_metrics", {})
+            if metrics:
+                annual_results.append({
+                    "fiscal_year": report.get("fiscal_year"),
+                    "revenue_cr": metrics.get("Revenue", metrics.get("Total Revenue", metrics.get("revenue", 0))),
+                    "net_profit_cr": metrics.get("Net Profit", metrics.get("PAT", metrics.get("net_profit", 0))),
+                    "ebitda_cr": metrics.get("EBITDA", metrics.get("ebitda", 0))
+                })
+
             existing_summary = report.get("nuanced_summary")
-            
             if existing_summary and len(existing_summary) > 200:
                 self._log_activity(f"Using cached annual report summary for {symbol}")
-            else:
-                # Check for chairman letter or summary
+            elif not comparison_mode:
+                # Only do LLM summarization in full mode, not comparison mode
                 deep_content = report.get("chairman_letter") or report.get("summary") or ""
                 if len(deep_content) > 500:
-                    self._log_activity(f"Summarizing annual report for {symbol} ({report.get('fiscal_year')})")
                     summary = summarize_document(deep_content, doc_type="Annual Report")
                     report["nuanced_summary"] = summary
-                    # Update DB with NEW summary
                     save_annual_report(symbol, report)
-
             report_data.append(report)
 
         # 4. Check for quarterly results focus
         query_lower = query.lower()
         is_results_query = any(term in query_lower for term in 
-            ['result', 'quarterly', 'profit', 'revenue', 'earnings', 'financial', 'guidance', 'margin'])
+            ['result', 'quarterly', 'profit', 'revenue', 'earnings', 'financial', 'guidance', 'margin', 'trend'])
         
         data = {
             "filings": filings if filings else [],
             "concalls": concall_data,
-            "annual_reports": report_data
+            "annual_reports": report_data,
+            "annual_results": sorted(annual_results, key=lambda x: str(x.get("fiscal_year", "")))
         }
         
-        # 5. Fetch Actual Financial Numbers if requested
+        # 5. Fetch Actual Financial Numbers (LAST 8 QUARTERS)
         if is_results_query:
             financials = self._get_quarterly_financials(symbol)
             if financials:
+                # yfinance usually gives 4, but let's try to pass whatever we get 
                 data.update(financials)
                 self._log_activity(f"Fetched quarterly financials for {symbol}")
         
-        has_deep_data = bool(concall_data or report_data)
-        
         return {
-            "has_data": bool(filings or has_deep_data),
+            "has_data": bool(filings or concall_data or report_data),
             "data": data,
             "source": "FilingsAgent (V3)",
             "relevance_score": 0.95 if is_results_query else 0.7
         }
+

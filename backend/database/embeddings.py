@@ -133,7 +133,7 @@ def search_similar(query: str, documents: List[Dict[str, Any]],
 def embed_news_articles():
     """Embed all news articles that don't have embeddings yet."""
     try:
-        from database import get_connection
+        from backend.database.database import get_connection
         import json
         
         conn = get_connection()
@@ -192,7 +192,7 @@ def build_semantic_context(query: str, symbol: str = None, top_k: int = 3) -> st
     This is what makes our RAG more powerful than ChatGPT.
     """
     try:
-        from database import get_connection
+        from backend.database.database import get_connection
         
         conn = get_connection()
         cur = conn.cursor()

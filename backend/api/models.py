@@ -125,12 +125,21 @@ class StockData(BaseModel):
     last_updated: Optional[str] = None
 
 
+class ChartData(BaseModel):
+    """Chart data returned from visual RAG."""
+    base64: str = Field(..., description="Base64 encoded PNG image")
+    type: str = Field(..., description="Chart type: revenue_trend, margin_trend, etc.")
+    title: str = Field(..., description="Chart title")
+    symbol: str = Field(..., description="Stock symbol")
+
+
 class QueryResponse(BaseModel):
     """Response to user query."""
     status: ResponseStatus
     response: str = Field(..., description="AI-generated response")
     intent: QueryIntent = QueryIntent.UNKNOWN
     data_used: Optional[Any] = Field(None, description="Detailed data fetched for this query")
+    chart: Optional[ChartData] = Field(None, description="Optional visual chart for the response")
     processing_time_ms: int = 0
     session_id: Optional[str] = None
     disclaimer: Optional[str] = None

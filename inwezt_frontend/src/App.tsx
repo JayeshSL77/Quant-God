@@ -68,14 +68,26 @@ export default function App() {
 
               if (updatedMsg.researchSteps) {
                 updatedMsg.researchSteps = updatedMsg.researchSteps.map(step => {
-                  if (text.includes(`[✓] Processed ${step.label}`)) return { ...step, status: 'done' };
-                  if (text.includes(`Queued ${step.label}`)) return { ...step, status: 'active' };
+                  // Check if current message mentions this step
+                  if (text.includes(`[✓] Processed ${step.label}`)) {
+                    return { ...step, status: 'done' as const };
+                  }
+                  if (text.includes(`Queued ${step.label}`)) {
+                    return { ...step, status: 'active' as const };
+                  }
+                  // Keep existing status (don't reset to pending!)
                   return step;
                 });
               }
             } else if (event.status === 'success') {
               updatedMsg.content = event.response || '';
               updatedMsg.metadata = event.data_used || updatedMsg.metadata;
+              if (event.chart) {
+                updatedMsg.chart = event.chart;
+              }
+              if (event.comparison) {
+                updatedMsg.comparison = event.comparison;
+              }
 
               if (!event.is_partial) {
                 updatedMsg.isComplete = true;

@@ -1,11 +1,16 @@
 import logging
+import os
 from typing import List, Dict, Any
 from .bse import BSEScraper
 from .screener import ScreenerScraper
-from .engine import PDFEngine
-from backend.database.database import save_annual_report, save_concall, annual_report_exists, concall_exists
+from backend.core.document.pdf_engine import PDFEngine
+from backend.database.database import save_annual_report, save_concall, annual_report_exists, concall_exists, get_stock_coverage
 
 logger = logging.getLogger("ScraperOrchestrator")
+
+# Coverage thresholds for skipping
+MIN_ANNUAL_REPORTS = 5  # At least 5 ARs to be considered "full"
+MIN_CONCALLS = 15       # At least 15 Concalls to be considered "full"
 
 class ScraperOrchestrator:
     """
@@ -16,9 +21,33 @@ class ScraperOrchestrator:
         self.bse = BSEScraper()
         self.screener = ScreenerScraper()
         self.engine = PDFEngine()
+        self.lock_file = ".scraper.lock"
+
+    def _acquire_lock(self):
+        if os.path.exists(self.lock_file):
+            pid = open(self.lock_file).read().strip()
+            logger.warning(f"Scraper lock exists for PID {pid}. Check if it's still running.")
+            return False
+        with open(self.lock_file, "w") as f:
+            f.write(str(os.getpid()))
+        return True
+
+    def _release_lock(self):
+        if os.path.exists(self.lock_file):
+            os.remove(self.lock_file)
+
+    def _is_stock_fully_covered(self, symbol: str) -> bool:
+        """Check if a stock already has sufficient coverage in the DB."""
+        coverage = get_stock_coverage(symbol)
+        return coverage['annual_reports'] >= MIN_ANNUAL_REPORTS and coverage['concalls'] >= MIN_CONCALLS
 
     def ingest_stock_data(self, symbol: str):
         """Main entry point to fetch and process all documents for a stock."""
+        # Early exit if stock is already fully covered
+        if self._is_stock_fully_covered(symbol):
+            logger.info(f"Skipping {symbol} - already fully covered (AR >= {MIN_ANNUAL_REPORTS}, Concalls >= {MIN_CONCALLS})")
+            return
+        
         logger.info(f"Starting ingestion process for {symbol}")
         
         # 1. Fetch metadata from both sources
@@ -139,6 +168,10 @@ class ScraperOrchestrator:
         
         if transcript_url:
             logger.info(f"Processing Concall Transcript: {transcript_url}")
+            resp_head = self.screener._make_request(transcript_url, method="HEAD")
+            size = resp_head.headers.get('Content-Length', 'unknown')
+            logger.info(f"Downloading {size} bytes from {transcript_url}")
+            
             response = self.screener._make_request(transcript_url)
             extraction = self.engine.extract_content(response.content)
             content = extraction['full_text']

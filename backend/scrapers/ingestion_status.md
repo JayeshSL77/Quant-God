@@ -1,9 +1,15 @@
 # Ingestion Queue Status
 
-Last Updated: 2026-01-28 15:18:31
+Last Updated: 2026-01-28 22:00:00
 
-The scrapers are currently working on **MARUTI** (15th stock) and moving downwards.
+The scrapers are currently working on **TECHM** (Tech Mahindra) and have reached the 22nd stock in the master list.
 
+### Global Highlights
+- **Stocks Processed**: 21/500
+- **Total Annual Reports**: 126
+- **Total Concalls**: 491
+
+### Detailed Queue Coverage
 | # | Stock Symbol | Coverage Status |
 |---|---|---|
 | 1 | RELIANCE | ✅ |
@@ -20,21 +26,16 @@ The scrapers are currently working on **MARUTI** (15th stock) and moving downwar
 | 12 | AXISBANK | ✅ |
 | 13 | BAJFINANCE | ✅ |
 | 14 | ASIANPAINT | ✅ |
-| 15 | MARUTI | 🔄 *Processing...* |
-| 16 | HCLTECH | |
-| 17 | SUNPHARMA | |
-| 18 | TITAN | |
-| 19 | WIPRO | |
-| 20 | ULTRACEMCO | |
-| 21 | NTPC | |
-| 22 | TECHM | |
+| 15 | MARUTI | ✅ |
+| 16 | HCLTECH | ✅ |
+| 17 | SUNPHARMA | ✅ |
+| 18 | TITAN | ✅ |
+| 19 | WIPRO | ✅ |
+| 20 | ULTRACEMCO | ✅ |
+| 21 | NTPC | ✅ |
+| 22 | TECHM | 🔄 *Processing...* |
 | 23 | NESTLEIND | |
 | 24 | POWERGRID | |
 | 25 | TATASTEEL | |
-| 26 | ONGC | |
-| 27 | JSWSTEEL | |
-| 28 | COALINDIA | |
-| 29 | BAJAJFINSV | |
-| 30 | GRASIM | |
 
-*(Note: There are 358 stocks in total in the current ingestion queue.)*
+*(Note: There are 358 stocks in total in the current high-priority ingestion queue.)*

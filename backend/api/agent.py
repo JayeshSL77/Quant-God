@@ -16,14 +16,14 @@ load_dotenv(override=True)
 # Import our custom modules (updated paths)
 from backend.api.config import config, AGENT_SYSTEM_PROMPT, TAX_CONTEXT_PROMPT
 from backend.api.models import QueryIntent, StockData
-from backend.utils.guardrails import ScopeGuardrail, ResponseGuardrail, ResponseFactChecker
-from backend.utils.indian_utils import (
+from backend.core.utils.guardrails import ScopeGuardrail, ResponseGuardrail, ResponseFactChecker
+from backend.core.utils.indian_utils import (
     format_indian_number,
     IndianTaxCalculator,
     is_indian_market_open,
     get_circuit_warning
 )
-from backend.utils.fetch_indian_data import fetch_indian_data
+from backend.core.utils.fetch_indian_data import fetch_indian_data
 
 # Database integration for RAG
 try:
@@ -61,7 +61,7 @@ logger = logging.getLogger("InweztAgent")
 
 
 
-from backend.agents.orchestrator_v2 import OrchestratorV2
+from backend.agents.orchestrator import OrchestratorV2
 
 class InweztAgent:
     """
@@ -166,7 +166,9 @@ class InweztAgent:
                 "status": "success",
                 "response": response_text,
                 "intent": mapped_intent,
-                "data_used": final_result.get("data"),
+                "data_used": final_result.get("data") or final_result.get("data_used"),
+                "chart": final_result.get("chart"),
+                "comparison": final_result.get("comparison"),
                 "processing_time_ms": processing_time,
                 "disclaimer": "AI-generated. Not investment advice. Verify before acting.",
                 "is_partial": False

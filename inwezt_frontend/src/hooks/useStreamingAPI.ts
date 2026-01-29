@@ -9,6 +9,8 @@ export interface ChatEvent {
     data_used?: any;
     processing_time_ms?: number;
     is_partial?: boolean;
+    chart?: any;
+    comparison?: any;
 }
 
 export const useStreamingAPI = () => {
