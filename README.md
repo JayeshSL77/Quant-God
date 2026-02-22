@@ -30,58 +30,86 @@ This is not a chatbot. This is a **capital allocation engine**.
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        QUANT-GOD ENGINE                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                   ORCHESTRATOR (V2)                       │   │
-│  │  Intent Detection → Query Decomposition → Agent Router    │   │
-│  │  Multi-hop Reasoning · Comparison Engine · Thesis Gen     │   │
-│  └──────────┬───────────┬───────────┬───────────┬───────────┘   │
-│             │           │           │           │               │
-│  ┌──────────▼──┐ ┌──────▼──────┐ ┌──▼────────┐ ┌▼──────────┐   │
-│  │ MarketData  │ │  Filings    │ │   News     │ │ Technical │   │
-│  │   Agent     │ │   Agent     │ │   Agent    │ │   Agent   │   │
-│  │             │ │             │ │            │ │           │   │
-│  │ RapidAPI    │ │ Concalls    │ │ yfinance   │ │ RSI/MACD  │   │
-│  │ yfinance    │ │ Ann. Rpts   │ │ Sentiment  │ │ Bollinger │   │
-│  │ Fundamentals│ │ BSE Filings │ │ Analysis   │ │ Signals   │   │
-│  └─────────────┘ └─────────────┘ └────────────┘ └───────────┘   │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                INTELLIGENCE LAYER                         │   │
-│  │                                                           │   │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐   │   │
-│  │  │ Hybrid      │  │   RAPTOR      │  │ Institutional  │   │   │
-│  │  │ Search      │  │   Recursive   │  │ Summarizer     │   │   │
-│  │  │ (BM25 +     │  │   Abstractive │  │ (Multi-doc     │   │   │
-│  │  │  Semantic)  │  │   Processing  │  │  synthesis)    │   │   │
-│  │  └─────────────┘  └──────────────┘  └────────────────┘   │   │
-│  │                                                           │   │
-│  │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐   │   │
-│  │  │ Contrarian  │  │   Alert      │  │ Index Builder  │   │   │
-│  │  │ Finder      │  │   System     │  │ (Custom        │   │   │
-│  │  │             │  │              │  │  Indices)      │   │   │
-│  │  └─────────────┘  └──────────────┘  └────────────────┘   │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                   DATA PLATFORM                           │   │
-│  │                                                           │   │
-│  │  BSE/NSE Scrapers · 20+ Parallel Workers · 15yr Depth    │   │
-│  │  Smart Concurrency · Anti-Detection · Bulk Ingestion      │   │
-│  │  Quant Analytics · Data Migration · Coverage Reporting    │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                   LLM BACKBONE                            │   │
-│  │                                                           │   │
-│  │  OpenAI GPT-4o · Google Gemini 2.0 · Mistral Large       │   │
-│  │  Hot-swappable · Retry w/ Exponential Backoff · Fallback  │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                           QUANT-GOD ENGINE                               │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                    PORTFOLIO ORCHESTRATOR (V2)                      │  │
+│  │                                                                    │  │
+│  │  Natural Language Query                                            │  │
+│  │       ↓                                                            │  │
+│  │  Intent Detection → Query Decomposition → Ticker Extraction        │  │
+│  │       ↓                                                            │  │
+│  │  Agent Router (routes to 1..N ticker-specific agents)              │  │
+│  │       ↓                                                            │  │
+│  │  Multi-hop Reasoning · Comparison Engine · Thesis Synthesis        │  │
+│  └───────┬──────────────────────────┬─────────────────────┬──────────┘  │
+│          │                          │                     │              │
+│  ════════╪══════════════════════════╪═════════════════════╪══════════    │
+│  ║  11,000-AGENT SWARM — One Persistent Agent Per Ticker            ║   │
+│  ║                                                                  ║   │
+│  ║  ┌─────────────────┐  ┌─────────────────┐       ┌────────────┐  ║   │
+│  ║  │ AGENT: RELIANCE  │  │ AGENT: TCS       │  ...  │ AGENT #N   │  ║   │
+│  ║  │ ┌─────────────┐ │  │ ┌─────────────┐ │       │ ┌────────┐ │  ║   │
+│  ║  │ │ MarketData  │ │  │ │ MarketData  │ │       │ │ Market │ │  ║   │
+│  ║  │ │ RapidAPI    │ │  │ │ RapidAPI    │ │       │ │  Data  │ │  ║   │
+│  ║  │ │ yfinance    │ │  │ │ yfinance    │ │       │ │        │ │  ║   │
+│  ║  │ └─────────────┘ │  │ └─────────────┘ │       │ └────────┘ │  ║   │
+│  ║  │ ┌─────────────┐ │  │ ┌─────────────┐ │       │ ┌────────┐ │  ║   │
+│  ║  │ │ Filings     │ │  │ │ Filings     │ │       │ │Filings │ │  ║   │
+│  ║  │ │ Concalls    │ │  │ │ Concalls    │ │       │ │Concall │ │  ║   │
+│  ║  │ │ Ann. Reports│ │  │ │ Ann. Reports│ │       │ │Ann Rpt │ │  ║   │
+│  ║  │ └─────────────┘ │  │ └─────────────┘ │       │ └────────┘ │  ║   │
+│  ║  │ ┌─────────────┐ │  │ ┌─────────────┐ │       │ ┌────────┐ │  ║   │
+│  ║  │ │ News Agent  │ │  │ │ News Agent  │ │       │ │  News  │ │  ║   │
+│  ║  │ │ Sentiment   │ │  │ │ Sentiment   │ │       │ │Sentmnt │ │  ║   │
+│  ║  │ └─────────────┘ │  │ └─────────────┘ │       │ └────────┘ │  ║   │
+│  ║  │ ┌─────────────┐ │  │ ┌─────────────┐ │       │ ┌────────┐ │  ║   │
+│  ║  │ │ Technical   │ │  │ │ Technical   │ │       │ │Techncl │ │  ║   │
+│  ║  │ │ RSI/MACD    │ │  │ │ RSI/MACD    │ │       │ │RSI/EMA │ │  ║   │
+│  ║  │ │ Bollinger   │ │  │ │ Bollinger   │ │       │ │Signals │ │  ║   │
+│  ║  │ └─────────────┘ │  │ └─────────────┘ │       │ └────────┘ │  ║   │
+│  ║  │                 │  │                 │       │            │  ║   │
+│  ║  │ State: 15yr     │  │ State: 15yr     │       │ State:15yr │  ║   │
+│  ║  │ filings cached  │  │ filings cached  │       │ cached     │  ║   │
+│  ║  └─────────────────┘  └─────────────────┘       └────────────┘  ║   │
+│  ║                                                                  ║   │
+│  ║  NSE: ~2,000 tickers │ BSE: ~5,000 │ Global: ~4,000             ║   │
+│  ╚══════════════════════════════════════════════════════════════════╝   │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                     INTELLIGENCE LAYER                              │  │
+│  │                                                                    │  │
+│  │  ┌──────────────┐  ┌───────────────┐  ┌─────────────────────────┐ │  │
+│  │  │ Hybrid Search│  │    RAPTOR      │  │ Institutional Summarizer│ │  │
+│  │  │ BM25 +       │  │  Recursive    │  │ Multi-doc synthesis     │ │  │
+│  │  │ pgvector     │  │  Abstractive  │  │ across 300+ pg docs     │ │  │
+│  │  │ Semantic     │  │  Processing   │  │                         │ │  │
+│  │  └──────────────┘  └───────────────┘  └─────────────────────────┘ │  │
+│  │                                                                    │  │
+│  │  ┌──────────────┐  ┌───────────────┐  ┌─────────────────────────┐ │  │
+│  │  │ Contrarian   │  │ Alert System  │  │ Index Builder           │ │  │
+│  │  │ Finder       │  │ Real-time     │  │ Custom Indices          │ │  │
+│  │  └──────────────┘  └───────────────┘  └─────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                      DATA PLATFORM                                 │  │
+│  │                                                                    │  │
+│  │  BSE/NSE Scrapers · 20+ Parallel Workers · 15-Year Depth          │  │
+│  │  Smart Concurrency · Anti-Detection · Bulk Ingestion               │  │
+│  │  Quant Analytics · Data Migration · Coverage Reporting             │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                      LLM BACKBONE                                  │  │
+│  │                                                                    │  │
+│  │  OpenAI GPT-4o · Google Gemini 2.0 Flash · Mistral Large           │  │
+│  │  Hot-swappable · Retry w/ Exponential Backoff · Provider Fallback  │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
