@@ -37,3 +37,14 @@ boto3>=1.34.34
 
 # --- Testing & Quality (Optional for Prod, Good for CI) ---
 pytest>=7.4.0
+
+# --- Production Hardening ---
+slowapi>=0.1.9                    # Rate limiting
+sentry-sdk[fastapi]>=1.40.0       # Error tracking
+prometheus-fastapi-instrumentator>=6.1.0  # Metrics
+
+# --- Scraper Specific ---
+fake-useragent>=1.4.0
+tenacity>=8.2.0
+pdfplumber>=0.10.0
+beautifulsoup4>=4.12.0

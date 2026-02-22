@@ -11,18 +11,24 @@ venv/
 .env.local
 .env.*.local
 
-# Archives
-inwezt_app_full.zip
+# Private keys - NEVER commit
+*.pem
+
+# Frontend (separate repo)
+web/
+
+# Archives & large binaries
 *.zip
+zi4Z0jgw
 
 # Node.js
 node_modules/
 dist/
 build/
-.DS_Store
 
 # Logs
 *.log
+logs/
 backend_test_output.jsonl
 reliance_full_debug.txt
 reliance_prompt_debug_v2.txt
@@ -33,6 +39,7 @@ test_output.txt
 .idea/
 *.swp
 *.swo
+.gemini/
 
 # Database files
 *.db
@@ -45,3 +52,26 @@ backend/tests/artifacts/
 # OS files
 Thumbs.db
 .DS_Store
+
+# Ad-hoc analysis scripts (not core)
+dlf_*
+check_dlf.py
+
+# Scraper runtime artifacts (large JSON caches)
+data_platform/scrapers/scrip_code_cache.json
+data_platform/scrapers/all_stocks.json
+data_platform/scrapers/bse_target_stocks.json
+data_platform/scrapers/priority_intersection.json
+data_platform/scrapers/test_ndtv.json
+data_platform/scrapers/comprehensive_coverage_1000.md
+data_platform/scrapers/bse_run_*.log
+
+# Data directory (user-specific runtime data)
+data/
+
+# Deploy artifacts
+waitlist_deploy.zip
+scraper_launch.log
+
+# Static built assets (generated)
+static/
